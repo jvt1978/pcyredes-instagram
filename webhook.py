@@ -10,7 +10,6 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"), ov
 app = Flask(__name__)
 _DIR = os.path.dirname(os.path.abspath(__file__))
 logging.basicConfig(
-    filename=os.path.join(_DIR, "instagram.log"),
     level=logging.INFO,
     format="%(asctime)s %(message)s"
 )
@@ -54,6 +53,11 @@ def _run_linkedin_in_background(sender: str):
     except Exception as e:
         logging.error(f"Error en post LinkedIn manual: {e}")
         _send_whatsapp_reply(sender, f"❌ Error al publicar en LinkedIn: {str(e)[:200]}")
+
+
+@app.route("/")
+def health():
+    return "OK", 200
 
 
 @app.route("/webhook", methods=["GET"])
