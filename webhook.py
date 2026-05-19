@@ -17,6 +17,7 @@ logging.basicConfig(
 
 VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "pcyredes_webhook_2025")
 TRIGGER_KEYWORD = "marketing instagram"
+TRIGGER_LINKEDIN = "linkedin"
 
 
 def _send_whatsapp_reply(to: str, text: str):
@@ -35,10 +36,24 @@ def _run_post_in_background(sender: str):
         from main import run
         run()
         _send_whatsapp_reply(sender, "✅ Post publicado en Instagram correctamente.")
-        logging.info(f"Post manual disparado por WhatsApp desde {sender}")
+        logging.info(f"Post Instagram manual disparado por WhatsApp desde {sender}")
     except Exception as e:
-        logging.error(f"Error en post manual: {e}")
-        _send_whatsapp_reply(sender, f"❌ Error al publicar: {str(e)[:200]}")
+        logging.error(f"Error en post Instagram manual: {e}")
+        _send_whatsapp_reply(sender, f"❌ Error al publicar en Instagram: {str(e)[:200]}")
+
+
+def _run_linkedin_in_background(sender: str):
+    try:
+        _send_whatsapp_reply(sender, "⏳ Revisando blog y publicando en LinkedIn...")
+        from linkedin_main import run
+        result = run()
+        title = result.get("title", "")
+        url = result.get("url", "")
+        _send_whatsapp_reply(sender, f"✅ Post publicado en LinkedIn.\n📝 {title}\n🔗 {url}")
+        logging.info(f"Post LinkedIn manual disparado por WhatsApp desde {sender}")
+    except Exception as e:
+        logging.error(f"Error en post LinkedIn manual: {e}")
+        _send_whatsapp_reply(sender, f"❌ Error al publicar en LinkedIn: {str(e)[:200]}")
 
 
 @app.route("/webhook", methods=["GET"])
@@ -67,8 +82,13 @@ def receive():
             sender = msg.get("from", "")
 
             if TRIGGER_KEYWORD in text:
-                logging.info(f"Keyword detectada de {sender}: '{text}'")
+                logging.info(f"Keyword Instagram detectada de {sender}: '{text}'")
                 t = threading.Thread(target=_run_post_in_background, args=(sender,))
+                t.daemon = True
+                t.start()
+            elif TRIGGER_LINKEDIN in text:
+                logging.info(f"Keyword LinkedIn detectada de {sender}: '{text}'")
+                t = threading.Thread(target=_run_linkedin_in_background, args=(sender,))
                 t.daemon = True
                 t.start()
 
