@@ -2,6 +2,6 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "python webhook.py"
+startCommand = "gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 webhook:app"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 5
