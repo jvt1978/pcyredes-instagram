@@ -3,3 +3,5 @@ requests
 python-dotenv
 pillow
 flask
+beautifulsoup4
+lxml
